@@ -1,0 +1,12 @@
+nginx:
+  build: ./nginx
+  ports:
+   - "8080:80"
+  environment:
+   - NGINX_PORT=80
+
+# fluentd:
+#   build: ./fluentd
+#   ports:
+#     - 24224:24224/tcp
+#     - 24224:24224/udp
