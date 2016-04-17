@@ -1,11 +1,4 @@
 FROM alpine:latest
-## NGINX
-RUN apk add --update nginx && rm -rf /var/cache/apk/* && \
- mkdir -p /tmp/nginx/client-body
-
-COPY conf/nginx.conf /etc/nginx/nginx.conf
-
-## FLUENTD
 LABEL Description="Fluentd docker image" Vendor="Fluent Organization" Version="1.1"
 
 # Do not split this into multiple RUN!
@@ -16,8 +9,7 @@ RUN apk --no-cache --update add \
                             ca-certificates \
                             ruby \
                             ruby-irb \
-                            ruby-dev \
-                            sudo && \
+                            ruby-dev && \
     echo 'gem: --no-document' >> /etc/gemrc && \
     gem install fluentd -v 0.12.21 && \
     apk del build-base ruby-dev && \
@@ -27,7 +19,8 @@ RUN adduser -D -g '' -u 1000 -h /home/fluent fluent
 RUN chown -R fluent:fluent /home/fluent
 
 # for log storage (maybe shared with host)
-RUN mkdir -p /fluentd/log/nginx
+RUN mkdir -p /fluentd/log
+
 # configuration/plugins path (default: copied from .)
 RUN mkdir -p /fluentd/etc /fluentd/plugins /fluentd/buffer
 
@@ -50,7 +43,4 @@ ENV FLUENTD_CONF="fluent.conf"
 
 EXPOSE 24224
 
-# CMD exec fluentd -c /fluentd/etc/$FLUENTD_CONF -p /fluentd/plugins $FLUENTD_OPT; nginx -g daemon off
-CMD fluentd -c /fluentd/etc/$FLUENTD_CONF -p /fluentd/plugins $FLUENTD_OPT; nginx -g daemon off
-# ENTRYPOINT fluentd -c /fluentd/etc/$FLUENTD_CONF -p /fluentd/plugins $FLUENTD_OPT && nginx -g daemon off && /bin/sh
-# CMD ["nginx", "-g", "daemon off;"]
+CMD exec fluentd -c /fluentd/etc/$FLUENTD_CONF -p /fluentd/plugins $FLUENTD_OPT
